@@ -9,7 +9,7 @@ display.setStatusBar( display.HiddenStatusBar )
 local screenW, screenH = display.contentWidth, display.contentHeight
 
 local moveDirectionX, moveDirectionY, moveTimer
-local maxShiftX = 5*2048 - screenW/2  -- 5 images with 2048 width
+local maxShiftX = 5*2048 - screenW  -- 5 images with 2048 width
 local maxShiftY = 80
 local moveDx, moveDy = 20, 3
 local killsCount -- text for displaying statistics
@@ -17,6 +17,8 @@ local killed = 0
 
 local bg = display.newGroup()
 local hud = display.newGroup()
+local radarPos
+local radarScale = 21.9
 
 ------------------------------------------------------------------------------
 
@@ -29,18 +31,27 @@ function killWithBlood(e)
 		killed = killed + 1
 		killsCount.text = killed.." kills"
 
+		e.target.radar:removeSelf()
 		e.target:removeSelf()
 
 		return true
 end
 
 function addTerorist(e)
+	-- create new terorist
 	local i = math.random(2)
 	local t = display.newImageRect("terorist"..i..".png", 320, 400)
 	t:scale(0.5, 0.5)
 	t.x = 100 + math.random()*10000
 	t.y = 300
 	bg:insert(t)
+	
+	-- point on radar
+	local radarT = display.newCircle(10 + t.x/radarScale, 10, 5)
+	radarT:setFillColor(255, 0, 0)
+	hud:insert(radarT)
+	t.radar = radarT
+
 	t:addEventListener("tap", killWithBlood)
 end
 
@@ -56,6 +67,14 @@ for i=1, 5, 1 do
 end
 
 -- HUD
+local radar = display.newImageRect("radar.png", screenW, 20)
+radar.x, radar.y = screenW/2, 10
+hud:insert(radar)
+
+local radarPos = display.newCircle(10, 10, 5)
+radarPos:setFillColor(0, 255, 0)
+hud:insert(radarPos)
+
 local heart = display.newImageRect("health.png", 32, 32)
 heart.x, heart.y = 25, screenH-30
 hud:insert(heart)
@@ -161,8 +180,6 @@ Runtime:addEventListener( "enterFrame", main )
 
 
 function accelerometerHandler(e)
-	killsCount.text = e.yGravity
-
 	if e.yGravity < 0 then
 		if bg.x > -maxShiftX then
 			bg.x = bg.x+100*e.yGravity
@@ -190,6 +207,10 @@ function accelerometerHandler(e)
 			bg.y = 0
 		end
 	end
+
+	radarPos.x = 10 - bg.x / radarScale
+
+	return true
 end
 
 Runtime:addEventListener("accelerometer", accelerometerHandler)
