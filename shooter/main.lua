@@ -13,6 +13,7 @@ local maxShiftY = 80
 local moveDx, moveDy = 20, 3
 
 local bg = display.newGroup()
+local hud = display.newGroup()
 
 ------------------------------------------------------------------------------
 
@@ -75,6 +76,7 @@ end
 
 ------------------------------------------------------------------------------
 
+-- BG
 for i=1, 5, 1 do
 	local img = display.newImageRect(i..".png", 2048, 400)
 	img:setReferencePoint(display.TopLeftReferencePoint)
@@ -84,3 +86,16 @@ for i=1, 5, 1 do
 	
 	bg:insert(img)
 end
+
+-- HUD
+local heart = display.newImageRect("health.png", 48, 48)
+heart.x, heart.y = 25, screenH-30
+hud:insert(heart)
+
+local healthBar = display.newText("100%", 50, screenH-50, native.systemFontBold, 32)
+healthBar:setTextColor(0, 255, 0)
+hud:insert(healthBar)
+
+local cr = display.newImageRect("crosshair.png", 48, 48)
+cr.x, cr.y = screenW/2, screenH/2
+hud:insert(cr)
