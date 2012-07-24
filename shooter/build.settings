@@ -2,7 +2,7 @@ settings = {
 	
 	orientation = {
 		default = "landscapeRight",
-		supported = { "landscapeLeft", "landscapeRight"}
+		supported = {"landscapeRight"}
 	},
 	
 	iphone = {
@@ -17,7 +17,7 @@ settings = {
             },
             CFBundleDisplayName = "Shooter",
             CFBundleVersion = "1.0",
-            CFBundleIdentifier = ""
+            CFBundleIdentifier = "*.pythondevside.com"
 		}
 	},
 }
