@@ -17,8 +17,107 @@ local killed = 0
 
 local bg = display.newGroup()
 local hud = display.newGroup()
-local radarPos
+local radarPos = display.newCircle(10, 10, 5)
 local radarScale = 21.9
+
+------------------------------------------------------------------------------
+
+-- Move by tapping --
+local function moveHandler(e)
+	-- X axis
+	if moveDirectionX > 0 then
+		if bg.x > -maxShiftX then
+			bg.x = bg.x-moveDx
+		else
+			bg.x = -maxShiftX
+		end
+	elseif moveDirectionX < 0 then
+		if bg.x < 0 then
+			bg.x = bg.x+moveDx
+		else
+			bg.x = 0
+		end
+	end
+	
+	radarPos.x = 10 - bg.x / radarScale
+
+	-- Y axis
+	if moveDirectionY > 0 then
+		if bg.y > -maxShiftY then
+			bg.y = bg.y-moveDy
+		else
+			bg.y = -maxShiftY
+		end
+	else
+		if bg.y < 0 then
+			bg.y = bg.y+moveDy
+		else
+			bg.y = 0
+		end
+	end
+end
+
+local function moveBg(e)
+	if e.x > screenW*3/4 then
+		moveDirectionX = 1
+	elseif e.x < screenW/4 then
+		moveDirectionX = -1
+	else
+		moveDirectionX = 0
+	end
+	
+	if e.y > screenH/2 then
+		moveDirectionY = 1
+	else
+		moveDirectionY = -1
+	end
+	
+	if e.phase == "began" then
+		moveTimer = timer.performWithDelay(30, moveHandler, 0)
+	elseif e.phase == "ended" or e.phase == "canceled" then
+		timer.cancel(moveTimer)
+		moveTimer = nil
+	end
+	
+	return true
+end
+
+-- Move with accelerometer
+function accelerometerHandler(e)
+	if e.yGravity < 0 then
+		if bg.x > -maxShiftX then
+			bg.x = bg.x+100*e.yGravity
+		else
+			bg.x = -maxShiftX
+		end
+	elseif e.yGravity > 0 then
+		if bg.x < 0 then
+			bg.x = bg.x+100*e.yGravity
+		else
+			bg.x = 0
+		end
+	end
+
+	if e.xGravity < 0 then
+		if bg.y > -maxShiftY then
+			bg.y = bg.y+50*e.xGravity
+		else
+			bg.y = -maxShiftY
+		end
+	elseif e.xGravity > 0 then
+		if bg.y < 0 then
+			bg.y = bg.y+50*e.xGravity
+		else
+			bg.y = 0
+		end
+	end
+
+	radarPos.x = 10 - bg.x / radarScale
+
+	return true
+end
+
+Runtime:addEventListener("accelerometer", accelerometerHandler)
 
 ------------------------------------------------------------------------------
 
@@ -36,6 +135,8 @@ function killWithBlood(e)
 
 		return true
 end
+
+------------------------------------------------------------------------------
 
 function addTerorist(e)
 	-- create new terorist
@@ -62,6 +163,7 @@ for i=1, 5, 1 do
 	local img = display.newImageRect(i..".png", 2048, 400)
 	img:setReferencePoint(display.TopLeftReferencePoint)
 	img.x, img.y = (i-1)*2048, 0 
+	img:addEventListener('touch', moveBg)
 	
 	bg:insert(img)
 end
@@ -71,7 +173,7 @@ local radar = display.newImageRect("radar.png", screenW, 20)
 radar.x, radar.y = screenW/2, 10
 hud:insert(radar)
 
-local radarPos = display.newCircle(10, 10, 5)
+-- local radarPos = display.newCircle(10, 10, 5)
 radarPos:setFillColor(0, 255, 0)
 hud:insert(radarPos)
 
@@ -90,6 +192,8 @@ hud:insert(killsCount)
 -- local cr = display.newImageRect("crosshair.png", 48, 48)
 -- cr.x, cr.y = screenW/2, screenH/2
 -- hud:insert(cr)
+
+------------------------------------------------------------------------------
 
 -- Blood
 local em = Particles.CreateEmitter("E1", screenW*0.5, screenH*0.5, 0, false, false)
@@ -165,52 +269,17 @@ Particles.SetEmitterSound("E1", Snd_Shot, 0, false, { channel = 0, loops = 0 } )
 
 bg:insert(Particles.GetEmitter("E1"))
 
+------------------------------------------------------------------------------
+
 -- Terorists generator
 timer.performWithDelay(1000, addTerorist, 0)
 
-----------------------------------------------------------------
+------------------------------------------------------------------------------
 -- MAIN LOOP
-----------------------------------------------------------------
+------------------------------------------------------------------------------
 local function main( event )
 	-- UPDATE PARTICLES
 	Particles.Update()
 end
 
 Runtime:addEventListener( "enterFrame", main )
-
-
-function accelerometerHandler(e)
-	if e.yGravity < 0 then
-		if bg.x > -maxShiftX then
-			bg.x = bg.x+100*e.yGravity
-		else
-			bg.x = -maxShiftX
-		end
-	elseif e.yGravity > 0 then
-		if bg.x < 0 then
-			bg.x = bg.x+100*e.yGravity
-		else
-			bg.x = 0
-		end
-	end
-
-	if e.xGravity < 0 then
-		if bg.y > -maxShiftY then
-			bg.y = bg.y+50*e.xGravity
-		else
-			bg.y = -maxShiftY
-		end
-	elseif e.xGravity > 0 then
-		if bg.y < 0 then
-			bg.y = bg.y+50*e.xGravity
-		else
-			bg.y = 0
-		end
-	end
-
-	radarPos.x = 10 - bg.x / radarScale
-
-	return true
-end
-
-Runtime:addEventListener("accelerometer", accelerometerHandler)
